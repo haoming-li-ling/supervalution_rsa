@@ -1,0 +1,165 @@
+---
+knitr:
+  opts_chunk:
+    dev: svglite
+format:
+  typst:
+    keep-typst: true
+---
+
+```{r}
+#| output: false
+
+source("synthesis.R")
+```
+
+# Maximin
+
+The first-level speaker utility becomes this: $$U_1(u \mid w, Q) = \min_i\left(\log\left(\sum_{v \sim_Q w} L_0(v, Q \mid u, i)\right) - c(u)\right)$$ Compare with the original: $$U_1(u \mid w, Q) = \sum_i\left(P(i)\log\left(\sum_{v \sim_Q w} L_0(v, Q \mid u, i)\right)\right) - c(u)$$
+
+# Parameters and initial setup
+
+```{r}
+lambda <- 2 # Rationality parameter
+n <- 2
+
+# cost_orig <- costp()
+# cost_neg_cheap <- costp(nNPsg = 0.1, nNPpl = 0.1, `n!1` = 2.6)
+cost_neg_exa_cheap <- costp(
+  NPsg = 0,
+  NPpl = 0,
+  nNPsg = 0.1, 
+  nNPpl = 0.1, 
+  `!1` = 0.9, 
+  `n!1` = 1, 
+  `+2` = 0.9, 
+  `n+2` = 1, 
+  `null` = -0.1
+)
+
+# cost_neg_exa_cheap <- costp(
+#   NPsg = 0,
+#   NPpl = 0,
+#   nNPsg = 0.5, 
+#   nNPpl = 0.5, 
+#   `!1` = 100, 
+#   `n!1` = 100,
+#   `+2` = 100, 
+#   `n+2` = 100, 
+#   `null` = -.1
+# )
+
+# cost_neg_exa_cheap <- costp(nNPsg = 0.1, nNPpl = 0.1, `!1` = 0.9, `n!1` = 1)
+# cost_neg_exa_cheap <- costp(nNPsg = 0.1, nNPpl = 0.1, `!1` = 100, `n!1` = 100)
+# cost <- cost_neg_cheap
+cost <- cost_neg_exa_cheap
+# cost <- cost_orig
+
+P_w_flat <- P_wp()
+P_w_sg_odd <- P_wp(w1 = 1 / 10)
+P_w_pl_odd <- P_wp(`w2+` = 1 / 10)
+# P_w_sg_odd_extreme <- P_wp(w1 = 1 / 1000)
+# P_w_pl_odd_extreme <- P_wp(`w2+` = 1 / 1000)
+
+P_Q_flat <- P_Qp()
+P_Q_Qml <- P_Qp(Qml = 10)
+P_Q_Qex <- P_Qp(Qex = 10)
+P_Q_Qfine <- P_Qp(Qfine = 10)
+
+P_i_flat <- P_ip()
+# P_i_penalize_embedded <- P_ip(ExhExh = 1, ExhLit = 1.1, LitLit = 1.21)
+# P_i_penalize_embedded <- P_ip(ExhExh = 1, ExhLit = 1.4, LitLit = 2)
+P_i_penalize_embedded <- P_ip(ExhExh = 1, ExhLit = 3, LitLit = 9)
+P_i <- P_i_penalize_embedded
+# P_i <- P_i_flat
+P_i("iLitLitLitLit")
+```
+
+# Flat world and QuD priors
+
+```{r}
+P_w <- P_w_flat
+P_Q <- P_Q_flat
+
+check_Sn(n)
+check_Ln(n)
+check_Ln_w(n)
+```
+
+# Flat world priors, Qex bias
+
+```{r}
+P_w <- P_w_flat
+P_Q <- P_Q_Qex
+
+check_Sn(n)
+check_Ln(n)
+check_Ln_w(n)
+```
+
+```{r}
+P_w <- P_w_flat
+P_Q <- P_Q_Qfine
+
+check_Sn(n)
+check_Ln(n)
+check_Ln_w(n)
+```
+
+# Flat world priors, Qml bias
+
+```{r}
+P_w <- P_w_flat
+P_Q <- P_Q_Qml
+
+check_Sn(n)
+check_Ln(n)
+check_Ln_w(n)
+# check_Sn_w(2)
+```
+
+# nNPsg oddness (w1 biased against, Qex bias)
+
+```{r}
+P_w <- P_w_sg_odd
+# P_Q <- P_Q_Qex
+P_Q <- P_Q_flat
+
+check_Sn(n - 1) # Oddness is here
+# check_Ln(n - 1)
+# Un(n) %>% filter(world == "w0" & QuD == "Qex")
+# Ln(n - 1) %>% filter(world == "w0" & QuD == "Qex")
+# Sn(n - 1) %>% filter(message == "nNPsg")
+# Sn(n - 1) %>% filter(message == "nNPpl")
+# check_Ln_w(n - 1)
+check_Sn(n)
+# check_Un(n)
+check_Ln_w(n)
+```
+
+```{r}
+P_w <- P_w_sg_odd
+P_Q <- P_Q_flat
+
+check_Sn(n - 1) # Oddness is here
+check_Ln(n - 1)
+# Un(n) %>% filter(world == "w0" & QuD == "Qex")
+# Ln(n - 1) %>% filter(world == "w0" & QuD == "Qex")
+# Sn(n - 1) %>% filter(message == "nNPsg")
+# Sn(n - 1) %>% filter(message == "nNPpl")
+# check_Ln_w(n - 1)
+check_Sn(n)
+# check_Un(n)
+check_Ln_w(n)
+```
+
+# nNPpl oddness (w2+ biased againt, Qex bias)
+
+```{r}
+P_w <- P_w_pl_odd
+P_Q <- P_Q_Qex
+check_Sn(n - 1)
+check_Sn(n)
+# check_Ln(n)
+check_Ln_w(n)
+```
